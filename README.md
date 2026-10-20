@@ -21,6 +21,14 @@ Built as a portfolio + learning project for modern software engineering: full-st
 
 ```bash
 npm install
+cp .env.example .env.local
+```
+
+1. Get a **free** Gemini API key: [Google AI Studio](https://aistudio.google.com/apikey)
+2. Put it in `.env.local` as `GEMINI_API_KEY=...`
+3. Run the app:
+
+```bash
 npm run dev
 ```
 
@@ -50,4 +58,4 @@ We treat this like a real SWE project:
 
 ## Status
 
-**Milestone 1** — chat UI + streaming `/api/chat` stub (no real model yet).
+**Milestone 2** — Gemini via Google AI Studio (free tier) streaming through `/api/chat`.

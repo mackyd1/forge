@@ -92,8 +92,8 @@ export function ChatShell() {
           </p>
         </div>
         <div className="masthead-meta" aria-hidden>
-          <span>m1 · stream</span>
-          <span>stub model</span>
+          <span>m2 · stream</span>
+          <span>gemini</span>
         </div>
       </header>
 
@@ -112,8 +112,8 @@ export function ChatShell() {
             onSubmit={send}
           />
           <p className="chat-hint">
-            Enter to send · Shift+Enter for a new line · Milestone 1 streams a
-            stub reply from <code>/api/chat</code>
+            Enter to send · Shift+Enter for a new line · Powered by Google AI
+            Studio via <code>/api/chat</code>
           </p>
         </div>
       </section>

@@ -14,7 +14,14 @@ export async function streamChat(
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
-    throw new Error(detail || `Chat request failed (${response.status})`);
+    let message = detail || `Chat request failed (${response.status})`;
+    try {
+      const parsed = JSON.parse(detail) as { error?: string };
+      if (parsed.error) message = parsed.error;
+    } catch {
+      // keep raw body text
+    }
+    throw new Error(message);
   }
 
   if (!response.body) {
