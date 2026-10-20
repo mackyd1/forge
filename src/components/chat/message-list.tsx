@@ -1,0 +1,47 @@
+"use client";
+
+import type { ChatMessage } from "@/lib/chat/types";
+
+type MessageListProps = {
+  messages: ChatMessage[];
+  streamingId: string | null;
+};
+
+export function MessageList({ messages, streamingId }: MessageListProps) {
+  if (messages.length === 0) {
+    return (
+      <div className="empty-state">
+        <p className="empty-kicker">Workspace</p>
+        <p className="empty-title">No thread yet.</p>
+        <p className="empty-copy">
+          Ask how something works, where a bug might live, or what a file is
+          for. Answers will eventually cite real code — for now the API streams
+          a stub so the UI is real.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <ul className="message-list" aria-live="polite">
+      {messages.map((message) => {
+        const isStreaming = message.id === streamingId;
+        return (
+          <li
+            key={message.id}
+            className={`message message-${message.role}`}
+            data-streaming={isStreaming ? "true" : undefined}
+          >
+            <span className="message-role">
+              {message.role === "user" ? "You" : "Forge"}
+            </span>
+            <div className="message-body">
+              {message.content || (isStreaming ? "" : "…")}
+              {isStreaming ? <span className="stream-caret" aria-hidden /> : null}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
