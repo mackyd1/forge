@@ -50,4 +50,4 @@ We treat this like a real SWE project:
 
 ## Status
 
-**Milestone 0** — project scaffold + GitHub connected.
+**Milestone 1** — chat UI + streaming `/api/chat` stub (no real model yet).

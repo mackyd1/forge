@@ -12,13 +12,15 @@ Each milestone builds a skill used in real software engineering / AI product wor
 
 ---
 
-## Milestone 1 — Chat UI + API route
+## Milestone 1 — Chat UI + API route (done)
 
-- Simple chat page
-- `POST /api/chat` that echoes or calls a model
-- Streaming responses (text appears live)
+- Chat workspace UI (`ChatShell`)
+- `POST /api/chat` streams a stub reply (text/plain)
+- Client reads the stream and updates the assistant message live
 
 **Concepts:** HTTP APIs, request/response, React state, streaming
+
+**Try it:** `npm run dev` → type a question → watch the reply stream in.
 
 ---
 
