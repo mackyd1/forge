@@ -24,13 +24,19 @@ Each milestone builds a skill used in real software engineering / AI product wor
 
 ---
 
-## Milestone 2 — Connect a real LLM
+## Milestone 2 — Connect a real LLM (done)
 
-- Env vars / secrets (never commit keys)
-- Call OpenAI or Anthropic
-- Basic prompt design
+- Free Gemini key from [Google AI Studio](https://aistudio.google.com/apikey)
+- `GEMINI_API_KEY` in `.env.local` (never commit)
+- `POST /api/chat` streams real model tokens via `@google/genai`
+- Default model: `gemini-3.5-flash-lite` (override with `GEMINI_MODEL`)
 
-**Concepts:** API keys, server vs client, cost & rate limits
+**Concepts:** API keys, server vs client, cost & rate limits, system prompts
+
+**Setup:**
+1. Create a key at AI Studio
+2. Copy `.env.example` → `.env.local` and paste the key
+3. Restart `npm run dev`
 
 ---
 

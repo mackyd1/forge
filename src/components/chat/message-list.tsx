@@ -14,9 +14,9 @@ export function MessageList({ messages, streamingId }: MessageListProps) {
         <p className="empty-kicker">Workspace</p>
         <p className="empty-title">No thread yet.</p>
         <p className="empty-copy">
-          Ask how something works, where a bug might live, or what a file is
-          for. Answers will eventually cite real code — for now the API streams
-          a stub so the UI is real.
+          Ask an engineering question — architecture, debugging, TypeScript,
+          APIs. Replies stream from Gemini (Google AI Studio). Repo grounding
+          lands in Milestone 3.
         </p>
       </div>
     );

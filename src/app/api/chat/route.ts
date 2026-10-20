@@ -1,22 +1,4 @@
-type ChatMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
-
-function buildStubReply(userText: string): string {
-  const trimmed = userText.trim();
-  const preview =
-    trimmed.length > 160 ? `${trimmed.slice(0, 160).trimEnd()}…` : trimmed;
-
-  return [
-    "Milestone 1 stub — no model wired yet.",
-    "",
-    "You asked:",
-    preview || "(empty message)",
-    "",
-    "Next: connect a real LLM (Milestone 2), then ground answers in your repo (Milestone 3).",
-  ].join("\n");
-}
+import { streamGeminiReply, type ChatTurn } from "@/lib/ai/gemini";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -27,28 +9,38 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const messages = (body as { messages?: ChatMessage[] })?.messages;
+  const messages = (body as { messages?: ChatTurn[] })?.messages;
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json(
-      { error: "Expected { messages: ChatMessage[] }" },
+      { error: "Expected { messages: ChatTurn[] }" },
       { status: 400 },
     );
   }
 
-  const lastUser = [...messages].reverse().find((m) => m.role === "user");
-  const reply = buildStubReply(lastUser?.content ?? "");
+  if (!process.env.GEMINI_API_KEY?.trim()) {
+    return Response.json(
+      {
+        error:
+          "Missing GEMINI_API_KEY. Get a free key at https://aistudio.google.com/apikey then add it to .env.local and restart npm run dev.",
+      },
+      { status: 503 },
+    );
+  }
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      // Stream by small chunks so the UI can practice real token streaming.
-      const chunkSize = 3;
-      for (let i = 0; i < reply.length; i += chunkSize) {
-        controller.enqueue(encoder.encode(reply.slice(i, i + chunkSize)));
-        await new Promise((r) => setTimeout(r, 12));
+      try {
+        await streamGeminiReply(messages, (delta) => {
+          controller.enqueue(encoder.encode(delta));
+        });
+        controller.close();
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Gemini request failed";
+        controller.error(new Error(message));
       }
-      controller.close();
     },
   });
 
