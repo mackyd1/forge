@@ -58,4 +58,4 @@ We treat this like a real SWE project:
 
 ## Status
 
-**Milestone 3** — local RAG. Open a folder path or a GitHub repo, then answers cite the files that were retrieved.
+**Milestone 4** — threads are saved in a local SQLite database and restored on refresh.
