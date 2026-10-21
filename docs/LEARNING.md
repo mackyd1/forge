@@ -54,12 +54,15 @@ Each milestone builds a skill used in real software engineering / AI product wor
 
 ---
 
-## Milestone 4 — Persistence + structure
+## Milestone 4 — Persistence + structure (done)
 
-- Save projects / chats (database)
-- Clean service layer (not everything in route handlers)
+- Threads and messages live in a local SQLite file, `.forge/forge.db`
+- SQL stays in `src/lib/db`. The API routes only check the request and call that layer
+- A refresh reopens the latest thread for the active repo
 
-**Concepts:** data modeling, services vs controllers, migrations
+**Concepts:** data modeling, services vs controllers, local databases
+
+**Try it:** ask a question, refresh the page, and the thread should still be there.
 
 ---
 
