@@ -15,7 +15,8 @@ Built as a portfolio + learning project for modern software engineering: full-st
 
 - **Next.js** (App Router) + **TypeScript** + **React**
 - **Tailwind CSS** for UI
-- Later: database, embeddings / vector search, LLM APIs, auth, Docker
+- **SQLite** for threads, Gemini for chat and embeddings
+- **Docker** for a repeatable production run
 
 ## Getting started
 
@@ -43,6 +44,16 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run start` | Run production build |
 | `npm run lint`  | ESLint               |
 
+## Run it in Docker
+
+Forge stores the database, indexes, and cloned repos on disk. A volume keeps that data when the container restarts. Serverless hosts drop that disk, so this app ships as a container.
+
+```bash
+docker compose up --build
+```
+
+That reads `GEMINI_API_KEY` from `.env.local` and serves http://localhost:3000. `GET /api/health` returns `{ "ok": true }`. Request logs are one JSON line each.
+
 ## Learning path
 
 See [docs/LEARNING.md](docs/LEARNING.md) for milestones and concepts.
@@ -58,4 +69,4 @@ We treat this like a real SWE project:
 
 ## Status
 
-**Milestone 4** — threads are saved in a local SQLite database and restored on refresh.
+**Milestone 5** — Docker image, health check, and JSON request logs.

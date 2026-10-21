@@ -6,19 +6,23 @@ import {
   toSourceRefs,
 } from "@/lib/rag/retrieve";
 import { getActiveSource } from "@/lib/rag/source";
+import { logRequest } from "@/lib/log";
 
 export async function POST(request: Request) {
+  const started = Date.now();
   let body: unknown;
 
   try {
     body = await request.json();
   } catch {
+    logRequest("POST /api/chat", 400, started, "Invalid JSON body");
     return Response.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   const messages = (body as { messages?: ChatTurn[] })?.messages;
 
   if (!Array.isArray(messages) || messages.length === 0) {
+    logRequest("POST /api/chat", 400, started, "Missing messages");
     return Response.json(
       { error: "Expected { messages: ChatTurn[] }" },
       { status: 400 },
@@ -26,6 +30,7 @@ export async function POST(request: Request) {
   }
 
   if (!process.env.GEMINI_API_KEY?.trim()) {
+    logRequest("POST /api/chat", 503, started, "Missing GEMINI_API_KEY");
     return Response.json(
       {
         error:
@@ -47,6 +52,7 @@ export async function POST(request: Request) {
   } catch (err) {
     const message = explainAiError(err);
     const status = message.startsWith("Free-tier embedding") ? 429 : 502;
+    logRequest("POST /api/chat", status, started, message);
     return Response.json({ error: message }, { status });
   }
 
@@ -62,9 +68,11 @@ export async function POST(request: Request) {
           systemInstruction,
         );
         controller.close();
+        logRequest("POST /api/chat", 200, started);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Gemini request failed";
+        logRequest("POST /api/chat", 502, started, message);
         controller.error(new Error(message));
       }
     },

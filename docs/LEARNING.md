@@ -66,13 +66,16 @@ Each milestone builds a skill used in real software engineering / AI product wor
 
 ---
 
-## Milestone 5 — Ship it
+## Milestone 5 — Ship it (done)
 
-- Docker
-- Deploy (e.g. Vercel or a VPS)
-- Basic logging / error handling
+- `output: "standalone"` plus a `Dockerfile` and `docker compose up --build`
+- Data stays in the `forge-data` volume, because the database and indexes live on disk
+- `GET /api/health` and one JSON log line per chat/index request
+- `error.tsx` shows a recovery screen if the page render throws
 
 **Concepts:** environments, containers, observability
+
+**Try it:** `docker compose up --build`, then open http://localhost:3000/api/health.
 
 ---
 
