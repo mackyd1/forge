@@ -7,6 +7,7 @@ export type SourceChunk = {
 
 export type IndexedChunk = SourceChunk & {
   id: string;
+  hash: string;
   embedding: number[];
 };
 

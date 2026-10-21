@@ -1,4 +1,5 @@
 import { streamGeminiReply, type ChatTurn } from "@/lib/ai/gemini";
+import { explainAiError } from "@/lib/rag/embed";
 import {
   buildGroundedInstruction,
   retrieve,
@@ -42,8 +43,9 @@ export async function POST(request: Request) {
     sources = toSourceRefs(retrieved);
     systemInstruction = buildGroundedInstruction(retrieved);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Retrieval failed";
-    return Response.json({ error: message }, { status: 502 });
+    const message = explainAiError(err);
+    const status = message.startsWith("Free-tier embedding") ? 429 : 502;
+    return Response.json({ error: message }, { status });
   }
 
   const encoder = new TextEncoder();
