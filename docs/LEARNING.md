@@ -45,7 +45,8 @@ Each milestone builds a skill used in real software engineering / AI product wor
 - `POST /api/index` walks this repo, chunks files, and embeds them with Gemini
 - Vectors live in `.forge/index.json` (gitignored — regenerated locally)
 - Each chat question embeds the query, finds the closest chunks, and cites them
-- Reindex reuses vectors for unchanged chunks. The free tier allows about 100 embedding requests per minute.
+- Reindex reuses vectors for unchanged chunks. The free tier allows about 100 embedding requests per minute
+- The source field accepts a local folder or a GitHub repo (`owner/name` or a github.com URL). Each repo keeps its own index
 
 **Concepts:** RAG, embeddings, vector search, grounding / citations
 

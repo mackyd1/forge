@@ -39,12 +39,16 @@ export function toSourceRefs(chunks: RetrievedChunk[]): SourceRef[] {
   }));
 }
 
-export function buildGroundedInstruction(chunks: RetrievedChunk[]): string {
+export function buildGroundedInstruction(
+  chunks: RetrievedChunk[],
+  repoLabel: string,
+): string {
   const base = [
     "You are Forge, an engineering workspace assistant.",
     "Be direct, practical, and concise — like a strong senior teammate.",
     "Prefer clear explanations and honest tradeoffs.",
     "When code is involved, use short fenced blocks and name languages.",
+    `The active repository is ${repoLabel}.`,
   ];
 
   if (chunks.length === 0) {

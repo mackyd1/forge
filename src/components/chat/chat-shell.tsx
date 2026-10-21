@@ -6,14 +6,27 @@ import type { ChatMessage } from "@/lib/chat/types";
 import { Composer } from "./composer";
 import { MessageList } from "./message-list";
 
+type RepoSourceInfo = {
+  label: string;
+  kind: "local" | "github";
+  root: string;
+  remote: string | null;
+};
+
 type IndexStatus = {
   ready: boolean;
   files: number;
   chunks: number;
+  remaining?: number;
+  source?: RepoSourceInfo;
 };
 
 function newId() {
   return crypto.randomUUID();
+}
+
+function tally(count: number, singular: string, plural: string) {
+  return `${count} ${count === 1 ? singular : plural}`;
 }
 
 export function ChatShell() {
@@ -23,6 +36,8 @@ export function ChatShell() {
   const [error, setError] = useState<string | null>(null);
   const [indexStatus, setIndexStatus] = useState<IndexStatus | null>(null);
   const [indexing, setIndexing] = useState(false);
+  const [sourceDraft, setSourceDraft] = useState("");
+  const [activeRoot, setActiveRoot] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -45,7 +60,9 @@ export function ChatShell() {
         return body;
       })
       .then((status) => {
-        if (!cancelled) setIndexStatus(status);
+        if (cancelled) return;
+        setIndexStatus(status);
+        setActiveRoot(status.source?.root ?? null);
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -57,15 +74,29 @@ export function ChatShell() {
     };
   }, []);
 
-  async function reindex() {
+  function applyIndex(status: IndexStatus) {
+    const nextRoot = status.source?.root ?? null;
+    if (activeRoot && nextRoot && activeRoot !== nextRoot) {
+      setMessages([]);
+    }
+    setActiveRoot(nextRoot);
+    setIndexStatus(status);
+  }
+
+  async function indexRepo(source?: string) {
     if (indexing || busy) return;
     setIndexing(true);
     setError(null);
     try {
-      const response = await fetch("/api/index", { method: "POST" });
+      const response = await fetch("/api/index", {
+        method: "POST",
+        headers: source ? { "Content-Type": "application/json" } : undefined,
+        body: source ? JSON.stringify({ source }) : undefined,
+      });
       const body = (await response.json()) as IndexStatus & { error?: string };
       if (!response.ok) throw new Error(body.error || "Indexing failed");
-      setIndexStatus(body);
+      applyIndex(body);
+      if (source) setSourceDraft("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Indexing failed");
     } finally {
@@ -139,8 +170,35 @@ export function ChatShell() {
           <p className="brand">Forge</p>
           <h1 className="headline">Heat the steel. Shape the answer.</h1>
           <p className="lede">
-            Engineering chat grounded in your codebase — built the way real
-            tools are built.
+            Point it at a folder or a GitHub repo. Answers cite that code.
+          </p>
+          <form
+            className="source-bar"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const next = sourceDraft.trim();
+              if (next) void indexRepo(next);
+            }}
+          >
+            <label className="sr-only" htmlFor="repo-source">
+              Repository path or GitHub URL
+            </label>
+            <input
+              id="repo-source"
+              className="source-input"
+              value={sourceDraft}
+              disabled={indexing || busy}
+              placeholder="C:\path\to\repo  or  github.com/owner/repo"
+              onChange={(event) => setSourceDraft(event.target.value)}
+            />
+            <button type="submit" disabled={indexing || busy || !sourceDraft.trim()}>
+              Open
+            </button>
+          </form>
+          <p className="source-current">
+            {indexStatus?.source
+              ? `${indexStatus.source.label} · ${indexStatus.source.remote ?? indexStatus.source.root}`
+              : "Source · this project"}
           </p>
         </div>
         <div className="index-rail">
@@ -150,15 +208,23 @@ export function ChatShell() {
               : indexStatus === null
                 ? "Checking index…"
                 : indexStatus.ready
-                  ? `${indexStatus.files} files · ${indexStatus.chunks} chunks`
+                  ? indexStatus.remaining
+                    ? `${tally(indexStatus.files, "file", "files")} · ${tally(indexStatus.chunks, "chunk", "chunks")} · ${indexStatus.remaining} left`
+                    : `${tally(indexStatus.files, "file", "files")} · ${tally(indexStatus.chunks, "chunk", "chunks")}`
                   : "Repo not indexed"}
           </p>
           <button
             type="button"
-            onClick={reindex}
+            onClick={() => void indexRepo()}
             disabled={indexing || busy}
           >
-            {indexing ? "Indexing" : indexStatus?.ready ? "Reindex" : "Index repo"}
+            {indexing
+              ? "Indexing"
+              : indexStatus?.remaining
+                ? "Continue"
+                : indexStatus?.ready
+                  ? "Reindex"
+                  : "Index repo"}
           </button>
         </div>
       </header>
@@ -178,8 +244,8 @@ export function ChatShell() {
             onSubmit={send}
           />
           <p className="chat-hint">
-            Enter to send · Shift+Enter for a new line · Index the repo, then
-            ask where something lives
+            Enter to send · Shift+Enter for a new line · Open a repo, then ask
+            where something lives
           </p>
         </div>
       </section>

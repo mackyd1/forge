@@ -14,8 +14,8 @@ export function MessageList({ messages, streamingId }: MessageListProps) {
         <p className="empty-kicker">Workspace</p>
         <p className="empty-title">No thread yet.</p>
         <p className="empty-copy">
-          Index this repo, then ask where chat streaming lives or how a file
-          is wired. Forge retrieves the closest snippets and cites them.
+          Open a folder path or a GitHub repo, then ask where something lives.
+          Forge retrieves the closest snippets and cites them.
         </p>
       </div>
     );
