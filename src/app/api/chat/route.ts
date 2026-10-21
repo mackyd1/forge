@@ -1,4 +1,9 @@
 import { streamGeminiReply, type ChatTurn } from "@/lib/ai/gemini";
+import {
+  buildGroundedInstruction,
+  retrieve,
+  toSourceRefs,
+} from "@/lib/rag/retrieve";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -28,13 +33,30 @@ export async function POST(request: Request) {
     );
   }
 
+  const lastUser = [...messages].reverse().find((message) => message.role === "user");
+  let sources: ReturnType<typeof toSourceRefs> = [];
+  let systemInstruction: string | undefined;
+
+  try {
+    const retrieved = lastUser ? await retrieve(lastUser.content) : [];
+    sources = toSourceRefs(retrieved);
+    systemInstruction = buildGroundedInstruction(retrieved);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Retrieval failed";
+    return Response.json({ error: message }, { status: 502 });
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        await streamGeminiReply(messages, (delta) => {
-          controller.enqueue(encoder.encode(delta));
-        });
+        await streamGeminiReply(
+          messages,
+          (delta) => {
+            controller.enqueue(encoder.encode(delta));
+          },
+          systemInstruction,
+        );
         controller.close();
       } catch (err) {
         const message =
@@ -48,6 +70,7 @@ export async function POST(request: Request) {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-store",
+      "X-Forge-Sources": encodeURIComponent(JSON.stringify(sources)),
     },
   });
 }

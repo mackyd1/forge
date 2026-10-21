@@ -14,9 +14,8 @@ export function MessageList({ messages, streamingId }: MessageListProps) {
         <p className="empty-kicker">Workspace</p>
         <p className="empty-title">No thread yet.</p>
         <p className="empty-copy">
-          Ask an engineering question — architecture, debugging, TypeScript,
-          APIs. Replies stream from Gemini (Google AI Studio). Repo grounding
-          lands in Milestone 3.
+          Index this repo, then ask where chat streaming lives or how a file
+          is wired. Forge retrieves the closest snippets and cites them.
         </p>
       </div>
     );
@@ -39,6 +38,17 @@ export function MessageList({ messages, streamingId }: MessageListProps) {
               {message.content || (isStreaming ? "" : "…")}
               {isStreaming ? <span className="stream-caret" aria-hidden /> : null}
             </div>
+            {message.sources && message.sources.length > 0 ? (
+              <ul className="source-list">
+                {message.sources.map((source) => (
+                  <li key={`${source.path}:${source.startLine}`}>
+                    <span>
+                      {source.path}:{source.startLine}–{source.endLine}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </li>
         );
       })}

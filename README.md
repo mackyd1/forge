@@ -58,4 +58,4 @@ We treat this like a real SWE project:
 
 ## Status
 
-**Milestone 2** — Gemini via Google AI Studio (free tier) streaming through `/api/chat`.
+**Milestone 3** — local RAG. Index this repo, then answers cite the files that were retrieved.
