@@ -5,6 +5,7 @@ import {
   retrieve,
   toSourceRefs,
 } from "@/lib/rag/retrieve";
+import { getActiveSource } from "@/lib/rag/source";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -39,9 +40,10 @@ export async function POST(request: Request) {
   let systemInstruction: string | undefined;
 
   try {
+    const source = await getActiveSource();
     const retrieved = lastUser ? await retrieve(lastUser.content) : [];
     sources = toSourceRefs(retrieved);
-    systemInstruction = buildGroundedInstruction(retrieved);
+    systemInstruction = buildGroundedInstruction(retrieved, source.label);
   } catch (err) {
     const message = explainAiError(err);
     const status = message.startsWith("Free-tier embedding") ? 429 : 502;

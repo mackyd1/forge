@@ -2,8 +2,11 @@ import { createHash } from "node:crypto";
 import { chunkSource } from "./chunk";
 import { EMBED_DIMENSIONS, embedInBatches, getEmbedModel } from "./embed";
 import { collectRepoFiles } from "./files";
+import { getActiveSource } from "./source";
 import { indexSummary, readIndex, writeIndex } from "./store";
 import type { CodeIndex, IndexedChunk } from "./types";
+
+const MAX_NEW_EMBEDDINGS = 32;
 
 function chunkHash(path: string, text: string) {
   return createHash("sha256").update(path).update("\0").update(text).digest("hex");
@@ -18,8 +21,9 @@ export async function buildCodeIndex() {
     reusedVectors.set(hash, chunk.embedding);
   }
 
-  const files = await collectRepoFiles();
-  const chunks = files.flatMap((file) => chunkSource(file.path, file.content));
+  const source = await getActiveSource();
+  const collected = await collectRepoFiles(source.root);
+  const chunks = collected.files.flatMap((file) => chunkSource(file.path, file.content));
   const embeddings: number[][] = new Array(chunks.length);
   const pending: { index: number; text: string }[] = [];
 
@@ -33,22 +37,31 @@ export async function buildCodeIndex() {
     pending.push({ index, text: `${chunk.path}\n${chunk.text}` });
   });
 
-  if (pending.length > 0) {
+  const batch = pending.slice(0, MAX_NEW_EMBEDDINGS);
+  const remaining = pending.length - batch.length;
+
+  if (batch.length > 0) {
     const fresh = await embedInBatches(
-      pending.map((item) => item.text),
+      batch.map((item) => item.text),
       "RETRIEVAL_DOCUMENT",
     );
-    pending.forEach((item, index) => {
+    batch.forEach((item, index) => {
       embeddings[item.index] = fresh[index];
     });
   }
 
-  const indexed: IndexedChunk[] = chunks.map((chunk, index) => ({
-    ...chunk,
-    id: `${chunk.path}:${chunk.startLine}-${chunk.endLine}`,
-    hash: chunkHash(chunk.path, chunk.text),
-    embedding: embeddings[index],
-  }));
+  const indexed: IndexedChunk[] = chunks.flatMap((chunk, index) => {
+    const embedding = embeddings[index];
+    if (!embedding) return [];
+    return [
+      {
+        ...chunk,
+        id: `${chunk.path}:${chunk.startLine}-${chunk.endLine}`,
+        hash: chunkHash(chunk.path, chunk.text),
+        embedding,
+      },
+    ];
+  });
 
   const index: CodeIndex = {
     version: 1,
@@ -58,6 +71,11 @@ export async function buildCodeIndex() {
     chunks: indexed,
   };
 
-  await writeIndex(index);
-  return { ...indexSummary(index), embedded: pending.length };
+  await writeIndex(index, { remaining, truncated: collected.truncated });
+  return {
+    ...indexSummary(index),
+    embedded: batch.length,
+    remaining,
+    truncated: collected.truncated,
+  };
 }
