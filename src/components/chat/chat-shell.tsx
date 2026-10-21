@@ -6,6 +6,12 @@ import type { ChatMessage } from "@/lib/chat/types";
 import { Composer } from "./composer";
 import { MessageList } from "./message-list";
 
+type IndexStatus = {
+  ready: boolean;
+  files: number;
+  chunks: number;
+};
+
 function newId() {
   return crypto.randomUUID();
 }
@@ -15,6 +21,8 @@ export function ChatShell() {
   const [draft, setDraft] = useState("");
   const [streamingId, setStreamingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [indexStatus, setIndexStatus] = useState<IndexStatus | null>(null);
+  const [indexing, setIndexing] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -27,6 +35,43 @@ export function ChatShell() {
   useEffect(() => {
     return () => abortRef.current?.abort();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/index")
+      .then(async (response) => {
+        const body = (await response.json()) as IndexStatus & { error?: string };
+        if (!response.ok) throw new Error(body.error || "Could not read index");
+        return body;
+      })
+      .then((status) => {
+        if (!cancelled) setIndexStatus(status);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not read index");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function reindex() {
+    if (indexing || busy) return;
+    setIndexing(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/index", { method: "POST" });
+      const body = (await response.json()) as IndexStatus & { error?: string };
+      if (!response.ok) throw new Error(body.error || "Indexing failed");
+      setIndexStatus(body);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Indexing failed");
+    } finally {
+      setIndexing(false);
+    }
+  }
 
   async function send() {
     const content = draft.trim();
@@ -67,6 +112,13 @@ export function ChatShell() {
           );
         },
         controller.signal,
+        (sources) => {
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === assistantId ? { ...message, sources } : message,
+            ),
+          );
+        },
       );
     } catch (err) {
       if ((err as Error).name === "AbortError") return;
@@ -91,9 +143,23 @@ export function ChatShell() {
             tools are built.
           </p>
         </div>
-        <div className="masthead-meta" aria-hidden>
-          <span>m2 · stream</span>
-          <span>gemini</span>
+        <div className="index-rail">
+          <p>
+            {indexing
+              ? "Reading the repo…"
+              : indexStatus === null
+                ? "Checking index…"
+                : indexStatus.ready
+                  ? `${indexStatus.files} files · ${indexStatus.chunks} chunks`
+                  : "Repo not indexed"}
+          </p>
+          <button
+            type="button"
+            onClick={reindex}
+            disabled={indexing || busy}
+          >
+            {indexing ? "Indexing" : indexStatus?.ready ? "Reindex" : "Index repo"}
+          </button>
         </div>
       </header>
 
@@ -112,8 +178,8 @@ export function ChatShell() {
             onSubmit={send}
           />
           <p className="chat-hint">
-            Enter to send · Shift+Enter for a new line · Powered by Google AI
-            Studio via <code>/api/chat</code>
+            Enter to send · Shift+Enter for a new line · Index the repo, then
+            ask where something lives
           </p>
         </div>
       </section>

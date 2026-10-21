@@ -40,13 +40,15 @@ Each milestone builds a skill used in real software engineering / AI product wor
 
 ---
 
-## Milestone 3 — Index a small codebase (RAG)
+## Milestone 3 — Index a small codebase (RAG) (done)
 
-- Split files into chunks
-- Embeddings + store vectors
-- Retrieve relevant chunks before answering
+- `POST /api/index` walks this repo, chunks files, and embeds them with Gemini
+- Vectors live in `.forge/index.json` (gitignored — regenerated locally)
+- Each chat question embeds the query, finds the closest chunks, and cites them
 
 **Concepts:** RAG, embeddings, vector search, grounding / citations
+
+**Try it:** click **Index repo**, then ask “Where does chat streaming happen?”
 
 ---
 

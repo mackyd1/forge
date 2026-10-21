@@ -5,12 +5,11 @@ export type ChatTurn = {
   content: string;
 };
 
-const SYSTEM_INSTRUCTION = [
+export const BASE_SYSTEM_INSTRUCTION = [
   "You are Forge, an engineering workspace assistant.",
   "Be direct, practical, and concise — like a strong senior teammate.",
   "Prefer clear explanations, concrete examples, and honest tradeoffs.",
   "When code is involved, use short fenced blocks and name languages.",
-  "You do not yet have the user's repo indexed; say so if they ask about specific private files.",
 ].join(" ");
 
 /** Free-tier friendly default; override with GEMINI_MODEL in .env.local */
@@ -38,6 +37,7 @@ function toGeminiContents(messages: ChatTurn[]) {
 export async function streamGeminiReply(
   messages: ChatTurn[],
   onDelta: (text: string) => void,
+  systemInstruction = BASE_SYSTEM_INSTRUCTION,
 ): Promise<void> {
   const ai = getGeminiClient();
   const model = getGeminiModel();
@@ -51,7 +51,7 @@ export async function streamGeminiReply(
     model,
     contents,
     config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
+      systemInstruction,
     },
   });
 

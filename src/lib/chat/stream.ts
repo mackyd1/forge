@@ -1,9 +1,10 @@
-import type { ChatMessage } from "./types";
+import type { ChatMessage, SourceRef } from "./types";
 
 export async function streamChat(
   messages: Pick<ChatMessage, "role" | "content">[],
   onDelta: (text: string) => void,
   signal?: AbortSignal,
+  onSources?: (sources: SourceRef[]) => void,
 ): Promise<void> {
   const response = await fetch("/api/chat", {
     method: "POST",
@@ -22,6 +23,16 @@ export async function streamChat(
       // keep raw body text
     }
     throw new Error(message);
+  }
+
+  const sourceHeader = response.headers.get("x-forge-sources");
+  if (sourceHeader && onSources) {
+    try {
+      const parsed = JSON.parse(decodeURIComponent(sourceHeader)) as SourceRef[];
+      if (Array.isArray(parsed) && parsed.length > 0) onSources(parsed);
+    } catch {
+      // Citations are optional; the reply can still stream.
+    }
   }
 
   if (!response.body) {
