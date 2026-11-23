@@ -1,8 +1,11 @@
+import { buildBm25Index, rankBm25 } from "./bm25";
 import { embedTexts } from "./embed";
 import { readIndex } from "./store";
 import type { IndexedChunk, SourceRef } from "./types";
 
-const TOP_K = 4;
+export const TOP_K = 4;
+const RRF_K = 60;
+const CANDIDATE_POOL = 24;
 
 function cosine(a: number[], b: number[]): number {
   let dot = 0;
@@ -20,15 +23,82 @@ function cosine(a: number[], b: number[]): number {
 
 export type RetrievedChunk = IndexedChunk & { score: number };
 
-export async function retrieve(query: string): Promise<RetrievedChunk[]> {
+export type RetrieveMode = "vector" | "bm25" | "hybrid";
+
+function rrfFuse(
+  rankedLists: { id: string; score: number }[][],
+): Map<string, number> {
+  const fused = new Map<string, number>();
+  for (const list of rankedLists) {
+    list.forEach((row, rank) => {
+      const contrib = 1 / (RRF_K + rank + 1);
+      fused.set(row.id, (fused.get(row.id) ?? 0) + contrib);
+    });
+  }
+  return fused;
+}
+
+/** Rank chunks with vector / BM25 / hybrid (RRF). Used by production retrieve and eval. */
+export function rankChunks(
+  query: string,
+  chunks: IndexedChunk[],
+  queryVector: number[] | null,
+  mode: RetrieveMode = "hybrid",
+  topK = TOP_K,
+): RetrievedChunk[] {
+  if (chunks.length === 0) return [];
+
+  const byId = new Map(chunks.map((chunk) => [chunk.id, chunk]));
+  const bm25Index = buildBm25Index(chunks);
+  const bm25Ranked = rankBm25(query, chunks, bm25Index).slice(0, CANDIDATE_POOL);
+
+  const vectorRanked =
+    queryVector && mode !== "bm25"
+      ? chunks
+          .map((chunk) => ({
+            id: chunk.id,
+            score: cosine(queryVector, chunk.embedding),
+          }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, CANDIDATE_POOL)
+      : [];
+
+  let fused: Map<string, number>;
+  if (mode === "bm25") {
+    fused = new Map(bm25Ranked.map((row) => [row.id, row.score]));
+  } else if (mode === "vector") {
+    fused = new Map(vectorRanked.map((row) => [row.id, row.score]));
+  } else {
+    const lists = [];
+    if (vectorRanked.length > 0) lists.push(vectorRanked);
+    if (bm25Ranked.length > 0) lists.push(bm25Ranked);
+    fused = lists.length > 0 ? rrfFuse(lists) : new Map();
+  }
+
+  return [...fused.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, topK)
+    .flatMap(([id, score]) => {
+      const chunk = byId.get(id);
+      if (!chunk) return [];
+      return [{ ...chunk, score }];
+    });
+}
+
+export async function retrieve(
+  query: string,
+  mode: RetrieveMode = "hybrid",
+): Promise<RetrievedChunk[]> {
   const index = await readIndex();
   if (!index || index.chunks.length === 0) return [];
 
-  const [queryVector] = await embedTexts([query], "RETRIEVAL_QUERY");
-  return index.chunks
-    .map((chunk) => ({ ...chunk, score: cosine(queryVector, chunk.embedding) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, TOP_K);
+  let queryVector: number[] | null = null;
+  if (mode !== "bm25") {
+    const [vector] = await embedTexts([query], "RETRIEVAL_QUERY");
+    queryVector = vector ?? null;
+  }
+
+  return rankChunks(query, index.chunks, queryVector, mode, TOP_K);
 }
 
 export function toSourceRefs(chunks: RetrievedChunk[]): SourceRef[] {

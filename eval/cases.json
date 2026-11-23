@@ -1,0 +1,133 @@
+[
+  {
+    "id": "session-create",
+    "query": "How do I create a signed session token for a user?",
+    "expectedPaths": ["src/auth/session.ts"],
+    "expectedLineRanges": [{ "path": "src/auth/session.ts", "start": 10, "end": 14 }]
+  },
+  {
+    "id": "session-validate",
+    "query": "validate session token and return the user or null",
+    "expectedPaths": ["src/auth/session.ts"],
+    "expectedLineRanges": [{ "path": "src/auth/session.ts", "start": 16, "end": 28 }]
+  },
+  {
+    "id": "session-cookie",
+    "query": "What is the session cookie name?",
+    "expectedPaths": ["src/auth/session.ts"],
+    "expectedLineRanges": [{ "path": "src/auth/session.ts", "start": 30, "end": 32 }]
+  },
+  {
+    "id": "invoice-subtotal",
+    "query": "compute invoice subtotal in cents before tax",
+    "expectedPaths": ["src/billing/invoice.py"],
+    "expectedLineRanges": [{ "path": "src/billing/invoice.py", "start": 18, "end": 21 }]
+  },
+  {
+    "id": "invoice-tax",
+    "query": "apply tax_rate to invoice subtotal",
+    "expectedPaths": ["src/billing/invoice.py"],
+    "expectedLineRanges": [{ "path": "src/billing/invoice.py", "start": 24, "end": 28 }]
+  },
+  {
+    "id": "invoice-total",
+    "query": "grand total including tax for an invoice",
+    "expectedPaths": ["src/billing/invoice.py"],
+    "expectedLineRanges": [{ "path": "src/billing/invoice.py", "start": 31, "end": 34 }]
+  },
+  {
+    "id": "invoice-format",
+    "query": "format invoice summary string with customer id",
+    "expectedPaths": ["src/billing/invoice.py"],
+    "expectedLineRanges": [{ "path": "src/billing/invoice.py", "start": 36, "end": 39 }]
+  },
+  {
+    "id": "rank-tokenize",
+    "query": "tokenize text into lowercase alphanumeric terms",
+    "expectedPaths": ["src/search/rank.js"],
+    "expectedLineRanges": [{ "path": "src/search/rank.js", "start": 4, "end": 9 }]
+  },
+  {
+    "id": "rank-score",
+    "query": "score a document by TF overlap with query terms",
+    "expectedPaths": ["src/search/rank.js"],
+    "expectedLineRanges": [{ "path": "src/search/rank.js", "start": 11, "end": 19 }]
+  },
+  {
+    "id": "rank-documents",
+    "query": "rankDocuments topK sorted by score",
+    "expectedPaths": ["src/search/rank.js"],
+    "expectedLineRanges": [{ "path": "src/search/rank.js", "start": 21, "end": 30 }]
+  },
+  {
+    "id": "rrf-fusion",
+    "query": "reciprocal rank fusion across ranked lists",
+    "expectedPaths": ["src/search/rank.js"],
+    "expectedLineRanges": [{ "path": "src/search/rank.js", "start": 32, "end": 42 }]
+  },
+  {
+    "id": "ttl-cache-set",
+    "query": "TtlCache set key with expiresAt",
+    "expectedPaths": ["src/cache/ttl.ts"],
+    "expectedLineRanges": [{ "path": "src/cache/ttl.ts", "start": 8, "end": 10 }]
+  },
+  {
+    "id": "ttl-cache-get",
+    "query": "get from TTL cache with lazy eviction on read",
+    "expectedPaths": ["src/cache/ttl.ts"],
+    "expectedLineRanges": [{ "path": "src/cache/ttl.ts", "start": 12, "end": 21 }]
+  },
+  {
+    "id": "ttl-evict",
+    "query": "evictExpired private method on TtlCache",
+    "expectedPaths": ["src/cache/ttl.ts"],
+    "expectedLineRanges": [{ "path": "src/cache/ttl.ts", "start": 35, "end": 41 }]
+  },
+  {
+    "id": "rate-limit-allow",
+    "query": "SlidingWindowRateLimiter allow client requests",
+    "expectedPaths": ["src/http/rateLimit.ts"],
+    "expectedLineRanges": [{ "path": "src/http/rateLimit.ts", "start": 9, "end": 20 }]
+  },
+  {
+    "id": "rate-limit-remaining",
+    "query": "how many requests remaining in the sliding window",
+    "expectedPaths": ["src/http/rateLimit.ts"],
+    "expectedLineRanges": [{ "path": "src/http/rateLimit.ts", "start": 22, "end": 27 }]
+  },
+  {
+    "id": "retry-after",
+    "query": "retryAfterSeconds when rate limit exhausted",
+    "expectedPaths": ["src/http/rateLimit.ts"],
+    "expectedLineRanges": [{ "path": "src/http/rateLimit.ts", "start": 30, "end": 35 }]
+  },
+  {
+    "id": "line-item-dataclass",
+    "query": "LineItem dataclass quantity unit_cents",
+    "expectedPaths": ["src/billing/invoice.py"],
+    "expectedLineRanges": [{ "path": "src/billing/invoice.py", "start": 5, "end": 9 }]
+  },
+  {
+    "id": "session-user-type",
+    "query": "SessionUser type with admin or member role",
+    "expectedPaths": ["src/auth/session.ts"],
+    "expectedLineRanges": [{ "path": "src/auth/session.ts", "start": 1, "end": 5 }]
+  },
+  {
+    "id": "cache-clear",
+    "query": "clear all entries from TtlCache",
+    "expectedPaths": ["src/cache/ttl.ts"],
+    "expectedLineRanges": [{ "path": "src/cache/ttl.ts", "start": 27, "end": 29 }]
+  },
+  {
+    "id": "billing-format-customer",
+    "query": "format_invoice_summary customer total_cents",
+    "expectedPaths": ["src/billing/invoice.py"]
+  },
+  {
+    "id": "auth-hash-helper",
+    "query": "hash payload with secret for session signature",
+    "expectedPaths": ["src/auth/session.ts"],
+    "expectedLineRanges": [{ "path": "src/auth/session.ts", "start": 34, "end": 41 }]
+  }
+]

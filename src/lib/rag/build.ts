@@ -23,7 +23,11 @@ export async function buildCodeIndex() {
 
   const source = await getActiveSource();
   const collected = await collectRepoFiles(source.root);
-  const chunks = collected.files.flatMap((file) => chunkSource(file.path, file.content));
+  const chunks = (
+    await Promise.all(
+      collected.files.map((file) => chunkSource(file.path, file.content)),
+    )
+  ).flat();
   const embeddings: number[][] = new Array(chunks.length);
   const pending: { index: number; text: string }[] = [];
 

@@ -1,0 +1,63 @@
+{
+  "generatedAt": "2026-11-23T18:34:27.456Z",
+  "topK": 4,
+  "cases": 22,
+  "lineChunks": 8,
+  "astChunks": 25,
+  "results": [
+    {
+      "mode": "line+vector",
+      "recallAtK": 0.9090909090909091,
+      "citationHitRate": 0.9090909090909091,
+      "hits": 20,
+      "citationHits": 20,
+      "total": 22
+    },
+    {
+      "mode": "line+bm25",
+      "recallAtK": 1,
+      "citationHitRate": 1,
+      "hits": 22,
+      "citationHits": 22,
+      "total": 22
+    },
+    {
+      "mode": "line+hybrid",
+      "recallAtK": 1,
+      "citationHitRate": 1,
+      "hits": 22,
+      "citationHits": 22,
+      "total": 22
+    },
+    {
+      "mode": "ast+vector",
+      "recallAtK": 0.9090909090909091,
+      "citationHitRate": 0.6818181818181818,
+      "hits": 20,
+      "citationHits": 15,
+      "total": 22
+    },
+    {
+      "mode": "ast+bm25",
+      "recallAtK": 1,
+      "citationHitRate": 0.9090909090909091,
+      "hits": 22,
+      "citationHits": 20,
+      "total": 22
+    },
+    {
+      "mode": "ast+hybrid",
+      "recallAtK": 1,
+      "citationHitRate": 0.9090909090909091,
+      "hits": 22,
+      "citationHits": 20,
+      "total": 22
+    }
+  ],
+  "headline": {
+    "baselineRecall": 0.9090909090909091,
+    "baselineCitation": 0.9090909090909091,
+    "astHybridRecall": 1,
+    "astHybridCitation": 0.9090909090909091
+  }
+}

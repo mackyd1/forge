@@ -35,14 +35,28 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Retrieval (v2)
+
+- **Tree-sitter** chunking for TS/JS/Python (function/class boundaries), line-window fallback elsewhere
+- **Hybrid retrieve:** Gemini embeddings + BM25 fused with Reciprocal Rank Fusion — see [docs/retrieval.md](docs/retrieval.md)
+- **Eval harness:** `npm run eval` runs 22 fixture cases offline
+
+Latest offline headline (`eval/results/latest.json`):
+
+| Mode | recall@4 | citation@4 |
+| --- | --- | --- |
+| line + vector | 90.9% | 90.9% |
+| **ast + hybrid** | **100%** | **90.9%** |
+
 ## Scripts
 
-| Command         | Purpose              |
-| --------------- | -------------------- |
-| `npm run dev`   | Local development    |
-| `npm run build` | Production build     |
-| `npm run start` | Run production build |
-| `npm run lint`  | ESLint               |
+| Command         | Purpose                          |
+| --------------- | -------------------------------- |
+| `npm run dev`   | Local development                |
+| `npm run build` | Production build                 |
+| `npm run start` | Run production build             |
+| `npm run lint`  | ESLint                           |
+| `npm run eval`  | Retrieval recall / citation eval |
 
 ## Run it in Docker
 
@@ -69,4 +83,4 @@ We treat this like a real SWE project:
 
 ## Status
 
-**Milestone 5** — Docker image, health check, and JSON request logs.
+**Milestone 6** — Tree-sitter chunking, hybrid BM25+vector retrieval, offline eval harness.
